@@ -38,8 +38,9 @@ cfs<-inner_join(clients,dx, by= join_by(client_id),suffix=c("_home","_bank"))
 
 ##Home district vs. bank district 
 ```{r}
-home_diff_bank<- cfs|> filter(district_id_home |>
+home_diff_bank<- cfs|> filter(district_id_home !=
                                district_id_bank )|>nrow()
+home_diff_bank
 ```
 We observe that `r home_diff_bank` clients have a bank in another district as the one they live in.
 
@@ -60,15 +61,17 @@ clients|>ggplot(aes(gender))+ geom_bar()
 ```{r}
 clients|>ggplot(aes(gender))+ geom_bar()+coord_flip()
 ```
+
 ```{r}
 cfs|>
   count(gender,type)
 ```
+
 ```{r}
 cfs|>
   count(gender,type)|>
-  group_by(gender|>
-             mutate(freq=n/sum(n)))|>
+  group_by(gender)|>
+             mutate(freq=n/sum(n))|>
   select(-n)|> ungroup()|> pivot_wider(values_from=freq,names_from=type)
 ```
 ```{r}
