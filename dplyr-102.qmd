@@ -4,8 +4,7 @@ author: "Ghina Mezher"
 format: html
 ---
 
-```{r}
-#|message=false
+```{r message=FALSE}
 here::i_am("dplyr-102.Rproj")
 library(here)
 library(vroom) #or readr
@@ -22,4 +21,63 @@ clients<-vroom(here("data","client.csv"))
 accounts<-vroom(here("data","account.csv"))
 disp<-vroom(here("data","disp.csv"))
 ```
+## Joining data tables 
+A collection of joining functions of the fork `_join`
+
+### Inner Join 
+```{r}
+dx<-inner_join(accounts,disp)
+```
+--> the join is on account_id which is a way to recognise each individual in both databases.
+
+```{r}
+cfs<-inner_join(clients,dx, by= join_by(client_id),suffix=c("_home","_bank"))
+```
+
+--> so the join here is on client_id and district_id which we do not want when we write cfs<-inner_join(clients,dx)
+
+##Home district vs. bank district 
+```{r}
+home_diff_bank<- cfs|> filter(district_id_home |>
+                               district_id_bank )|>nrow()
+```
+We observe that `r home_diff_bank` clients have a bank in another district as the one they live in.
+
+```{r}
+cfs|> group_by(account_id)|> distinct(district_id_home)|>
+  summarise(N=n())|>
+  filter(N>1)
+```
+distinct is group aware that will decide each of the groups. 
+So we obtain 0 therefore there is no link. 
+
+```{r}
+clients|>count(gender)
+```
+```{r}
+clients|>ggplot(aes(gender))+ geom_bar()
+```
+```{r}
+clients|>ggplot(aes(gender))+ geom_bar()+coord_flip()
+```
+```{r}
+cfs|>
+  count(gender,type)
+```
+```{r}
+cfs|>
+  count(gender,type)|>
+  group_by(gender|>
+             mutate(freq=n/sum(n)))|>
+  select(-n)|> ungroup()|> pivot_wider(values_from=freq,names_from=type)
+```
+```{r}
+cfs|> ggplot(aes(y=gender,fill=type))+geom_bar(position="fill")
+```
+```{r}
+chisq.test(cfs|>pull(gender),
+           cfs|>pull(type))
+```
+
+
 
